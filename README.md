@@ -1,5 +1,5 @@
 
-## Mulberry Exercise
+# Mulberry Exercise
 
 Imagine a system where thousands of retail stores are concurrently sending
 product data to a service that will generate protection plans based on item
@@ -47,7 +47,7 @@ An example GET request is the following:
 ```
 The service will return a list of protection plans.
 
-### Requirements
+## Requirements
 
   1. The service can handle many requests concurrently.
   2. When the service receives a POST request it must: 

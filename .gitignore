@@ -1,3 +1,6 @@
 *~
 *.sw[o,p]
 *.py[o,c]
+/venv*
+*.egg-info
+*.eggs
