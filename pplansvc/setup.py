@@ -46,7 +46,6 @@ setup_requires = [
 
 install_requires = [
     "moruslib", # requires dependency_link above
-    "argparse",
     #"psycopg2",
     #"redis",
     #"simplejson",
@@ -69,7 +68,7 @@ setup(
     description = "Mulberry Payment Plans Service",
     long_description = long_description,
     long_description_content_type = "text/markdown",
-    packages = ["pplans", "pplans.lib", "pplans.svc", "pplans.test"],
+    packages = ["pplans", "pplans.flask", "pplans.test"],
     license = "Proprietary",
     author = "Kenneth Dombrowski",
     author_email = "kdombrowski@gmail.com",

@@ -1,16 +1,12 @@
 #!/usr/bin/env python
-
-# distutils does not support "python setup.py develop"
-#from distutils.core import setup
 from setuptools import setup
 
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-
 install_requires = [
-    "argparse",
+    "Flask",
     "psycopg2",
 ]
 
@@ -33,8 +29,9 @@ setup(
         "morus.flask",
         "morus.setuptools",
         "morus.test",
+        "morus.testing",
     ],
-    license = "PRIVATE",
+    license = "Proprietary",
     setup_requires = ["nose>=1.0", "pip>=1.7.2"],
     test_suite = "nose.collector",
     install_requires = install_requires,

@@ -1,6 +1,10 @@
 *~
 *.sw[o,p]
 *.py[o,c]
-/venv*
+/.coverage
+*/.coverage
 *.egg-info
 *.eggs
+/venv*
+/moruslib/build
+/moruslib/dist

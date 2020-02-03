@@ -22,3 +22,6 @@ Helpers for creating Flask-based services
 
 Helpers for packaging Python modules
 
+### testing
+
+Helpers for testing: contextmanagers, mocks, fixtures, etc.. 

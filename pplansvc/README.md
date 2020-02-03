@@ -36,8 +36,10 @@ Install this package:
 
 Run the tests.  The preferred way to run the tests during development is:
 ```sh
- $ python ./setup.py test
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ ./setup.py test
 ```
+The `setup.py` at the top level of `mulberry-demo` provides a single test
+command for testing both `morus` library code, and the `pplans` service.
 
 ## Endpoints
 

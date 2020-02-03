@@ -418,6 +418,9 @@ class NoseTestCommand(TestCommand):
         "--verbose",
         "--nocapture",
         "--with-doctest",
+        "--with-coverage",
+        "--cover-erase",
+        "--cover-tests",
     ]
 
     def finalize_options(self):
