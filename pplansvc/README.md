@@ -5,9 +5,18 @@ The Payment Plans service is a Flask app with a Postgres backend
 
 ## Getting Started
 
-Install system prerequisites, assuming Ubuntu or similar:
+Assuming Ubuntu or similar:
+
+If you are running **Ubuntu 16.04 (xenial)**, you will need to register a
+package repository in order to install `python3.7`
 ```sh
-kenneth@x1:~/git/mulberry-demo (master)$ sudo apt install postgresql libpq-dev
+kenneth@x1:~/git/mulberry-demo (master)$ sudo apt install software-properties-common
+kenneth@x1:~/git/mulberry-demo (master)$ sudo add-apt-repository ppa:deadsnakes/ppa
+kenneth@x1:~/git/mulberry-demo (master)$ sudo add-get update
+```
+Then:
+```sh
+kenneth@x1:~/git/mulberry-demo (master)$ sudo apt install postgresql libpq-dev python3.7
 ```
 
 Create a Python3.7 virtualenv and make sure you have the latest `pip`, `setuptools`, & `wheel` packages:
@@ -28,18 +37,94 @@ are installing the package in "editable" mode:
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -e moruslib/
 ```
 
-Install the `pplansvc` package:
+## Set up pplansvc
+
+`cd` into the `pplansvc` directory and install the package in "editable" mode:
 ```sh
-(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -e pplansvc/
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ cd pplansvc/
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py develop
+```
+Note that requirements are handled by setuptools (not a `requirements.txt`).
+This allows `pplansvc` to be installed into other environments and imported &
+instantiated & launched in exactly the same manner as it is in production, for
+the purpose of integration testing other services that need to interact with it.
+
+The `requirements.txt` that is distributed with the source is created as part
+of the build process for the purpose of pinning all dependency versions exactly.
+
+Next, run the tests.  The preferred way to run the tests during development is:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py test
+```
+This custom subcommand executes tests for both `morus` library code, and the `pplans` service.
+
+There are several other custom setup.py subcommands to help developers create
+their environments using the same functions that will be used in the context
+of the CI environment and production during deployment.  To see a list, run:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py --help-commands
+```
+Each of these commands also accepts a `--help` argument to print out options.
+
+### ./setup.py envtest
+
+Run this to see that your environment appears functional.
+
+One of the first tests that will run checks that postgres is installed and the
+`postgres` admin user can connect locally without a password.  If it is not
+the case, you will see an error like the following:
+```sh
+
+    postgres user unable to SELECT VERSION()
+
+Please verify postgres can access db without a password:
+
+    sudo -u postgres psql
+
+You may have to set the following in your pg_hba.conf:
+
+    local     all     postgres      peer
+
+You will have to restart postgres after editing the file
 ```
 
-Run the tests.  The preferred way to run the tests during development is:
-```sh
-(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ ./setup.py test
-```
-The `setup.py` at the top level of `mulberry-demo` provides a single test
-command for testing both `morus` library code, and the `pplans` service.
+### ./setup.py createuser
 
+The next `envtest` error you are likely to see if running from scratch will
+complain of `user testuser not found`
+
+To create the `testuser` login:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py createuser --dbuser testuser --dbpass testpass
+```
+
+### ./setup.py createdb
+
+The next problem will be `db testdb not found`
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py createdb --dbname testdb --owner testuser
+```
+
+### alembic init
+
+If not already done, run the `alembic init` command like so:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ alembic init alembic 
+  Creating directory /home/kenneth/git/mulberry-demo/pplansvc/alembic ...  done
+  Creating directory /home/kenneth/git/mulberry-demo/pplansvc/alembic/versions ...  done
+  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/script.py.mako ...  done
+  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/env.py ...  done
+  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic.ini ...  done
+  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/README ...  done
+  Please edit configuration/connection/logging settings in '/home/kenneth/git/mulberry-demo/pplansvc/alembic.ini' before proceeding.
+```
+
+As the output suggests, edit `alembic.ini` as follows:
+```ini
+sqlalchemy.url = postgres://testuser:testpass@localhost/testdb
+```
+
+### ./setup.py createschema
 
 
 ## Endpoints

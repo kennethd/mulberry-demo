@@ -8,3 +8,5 @@
 /venv*
 /moruslib/build
 /moruslib/dist
+/pplansvc/build
+/pplansvc/dist

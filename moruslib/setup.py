@@ -7,8 +7,8 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     "Flask",
+    "alembic",
     "psycopg2",
-    # tests_require
     "coverage",
     "nose",
     "pep8",
@@ -33,7 +33,6 @@ setup(
     setup_requires = ["nose>=1.0", "pip>=1.7.2"],
     test_suite = "nose.collector",
     install_requires = install_requires,
-    #tests_require = tests_require,
     classifiers=[
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3.6",

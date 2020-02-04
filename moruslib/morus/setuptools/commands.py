@@ -14,6 +14,10 @@ from setuptools.command.test import test as TestCommand
 
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+log.addHandler(console_handler)
 
 
 # for demo, just support pg env vars for config
@@ -249,7 +253,7 @@ class PsqlCommand(Command):
         ("pass=", None, "database password (default testpass)"),
         ("host=", None, "database hostname (default {})".format(PGHOST)),
         ("port=", None, "database port (default {})".format(PGPORT)),
-        ("dbname=", None, "database name (default test_audit)"),
+        ("dbname=", None, "database name (default testdb)"),
     ]
 
     def initialize_options(self):
@@ -257,11 +261,11 @@ class PsqlCommand(Command):
         # default values match ./ocrolus_models/tests/testing.ini
         # TODO: allow overriding with --config option & parse file
         self.scheme = "postgresql"
-        self.user = "audituser"
-        self.pwd = "auditpass"
+        self.user = "testuser"
+        self.pwd = "testpass"
         self.host = PGHOST
         self.port = PGPORT
-        self.dbname = "test_audit"
+        self.dbname = "testdb"
 
     def finalize_options(self):
         if not self.dsn:
@@ -297,12 +301,14 @@ class PsqlCommand(Command):
             except Exception as ex:
                 sys.exit("unable to run query as {}: {}".format(PGUSER, ex))
             ret_val = (result, ioout.getvalue(), ioerr.getvalue())
+        log.handlers[0].flush()
         return ret_val
 
     def run_query(self, query):
         log.debug("run_query: {}".format(query))
         result = self._psycopg2_query(query)
         log.debug("psycopg2 query result: {}".format(result))
+        log.handlers[0].flush()
         return result
 
 
@@ -349,7 +355,15 @@ class EnvTestCommand(PsqlCommand):
             )
         )
         if "PostgreSQL" not in stdout:
-            sys.exit("{} user unable to SELECT VERSION()".format(PGUSER))
+            err = "\n".join([
+                "\n\t{} user unable to SELECT VERSION()".format(PGUSER),
+                "\nPlease verify {} can access db without a password:".format(PGUSER),
+                "\n\tsudo -u {} psql".format(PGUSER),
+                "\nYou may have to set the following in your pg_hba.conf:",
+                "\n\tlocal     all     {}      peer".format(PGUSER),
+                "\nYou will have to restart postgres after editing the file",
+            ])
+            sys.exit(err)
 
     def _check_user(self):
         log.debug("{} Checking user: {}".format(self.__class__.__name__, self.user))
