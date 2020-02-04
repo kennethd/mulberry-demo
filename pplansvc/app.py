@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from morus.flask.app import configured_app, parse_args
+from pplans.flask.app import configured_app, parse_args
 
 args = parse_args()
 app = configured_app('pplansvc', args.config, debug=args.debug)

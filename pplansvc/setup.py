@@ -6,7 +6,8 @@ import os
 #from distutils.core import setup
 from setuptools import setup
 
-from morus.setuptools.commands import COMMANDS
+import morus
+from morus.setuptools.commands import COMMANDS, NoseTestCommand
 
 
 log = logging.getLogger("setup")
@@ -17,6 +18,22 @@ log.addHandler(console_handler)
 
 
 LIBS_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+
+class MulberryDemoNoseTestCommand(NoseTestCommand):
+    """meta-setup command for running moruslib & pplansvc tests simultaneously
+
+    Note: this wouldn't be required in non-demo context where moruslib is
+    packaged properly
+    """
+    nose_opts = NoseTestCommand.nose_opts + [
+        "--cover-package=morus",
+        "--cover-package=pplans",
+        "./setup.py",  # for doctests defined here
+        "./pplans",
+    ] + morus.__spec__.submodule_search_locations
+COMMANDS["test"] = MulberryDemoNoseTestCommand
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -30,7 +47,7 @@ def local_pkg(pkgname):
 
     >>> pkg = "mylib"
     >>> path = local_pkg(pkg)
-    >>> assert path == os.path.sep.join([LIBS_DIR, pkg])
+    >>> path == os.path.sep.join([LIBS_DIR, pkg])
     True
     """
     return os.path.sep.join([LIBS_DIR, pkgname])
@@ -45,16 +62,16 @@ setup_requires = [
 ]
 
 install_requires = [
+    "Flask",
     "moruslib", # requires dependency_link above
     #"psycopg2",
     #"redis",
     #"simplejson",
-    #"SQLAlchemy",
+    "SQLAlchemy",
     "urllib3",
 ]
 
 tests_require = [
-    "Flask",
     "coverage",
     "nose",
     "pep8",

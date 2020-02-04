@@ -28,10 +28,9 @@ are installing the package in "editable" mode:
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -e moruslib/
 ```
 
-Install this package:
+Install the `pplansvc` package:
 ```sh
-(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ cd pplansvc/
-(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ python ./setup.py install 
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -e pplansvc/
 ```
 
 Run the tests.  The preferred way to run the tests during development is:
@@ -40,6 +39,8 @@ Run the tests.  The preferred way to run the tests during development is:
 ```
 The `setup.py` at the top level of `mulberry-demo` provides a single test
 command for testing both `morus` library code, and the `pplans` service.
+
+
 
 ## Endpoints
 
