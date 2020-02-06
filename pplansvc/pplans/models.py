@@ -1,12 +1,11 @@
 import enum
 
-import sqlalchemy as db
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
 
-Base = declarative_base()
+db = SQLAlchemy()
+BaseModel = db.make_declarative_base(db.Model)
 
 
 class ItemType(enum.Enum):
@@ -16,7 +15,7 @@ class ItemType(enum.Enum):
     jewelry = "jewelry"
 
 
-class Item(Base):
+class Item(BaseModel):
     __tablename__ = 'items'
     item_id = db.Column(db.Integer, primary_key=True)
     item_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False)
@@ -24,22 +23,24 @@ class Item(Base):
     item_cost = db.Column(db.Numeric(precision=12, scale=2), index=True)
     item_sku = db.Column(db.String(32), nullable=False, index=True)
     item_title = db.Column(db.String(64))
+    warranties = db.relationship("Warranty", backref="item", lazy=True)
 
     def __repr__(self):
         return '<Item {} "{}">'.format(self.item_uuid, self.item_title)
 
 
-class Store(Base):
+class Store(BaseModel):
     __tablename__ = 'stores'
     store_id = db.Column(db.Integer, primary_key=True)
     store_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False)
     store_name = db.Column(db.String(32), nullable=False, index=True)
+    warranties = db.relationship("Warranty", backref="item", lazy=True)
 
     def __repr__(self):
         return '<Store {} "{}">'.format(self.store_uuid, self.store_name)
 
 
-class Constraint(Base):
+class Constraint(BaseModel):
     """Constraints defined here govern what Warranties are available for a
     given item_type and item_cost
 
@@ -83,7 +84,7 @@ class Constraint(Base):
                                                        self.warranty_duration_months)
 
 
-class Warranty(Base):
+class Warranty(BaseModel):
     __tablename__ = 'warranties'
 
     warranty_id = db.Column(db.Integer, primary_key=True)

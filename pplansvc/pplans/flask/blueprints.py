@@ -1,7 +1,7 @@
 
 from flask import Blueprint, request
 
-from pplans.warranty import get_or_create_warranty, get_warranties
+from pplans.warranty import gen_warranty, get_warranties
 
 
 warranties_api = Blueprint('warranties', __name__, url_prefix='/warranties')

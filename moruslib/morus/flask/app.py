@@ -54,7 +54,12 @@ def configured_app(import_name, debug=False, config_module=None, profile=False,
     """
     app = Flask(import_name, **flask_kwargs)
     app.secret_key = os.urandom(24)
+    # stop noisy warnings
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     app.debug = debug
+    if app.debug:
+        app.config['SQLALCHEMY_ECHO'] = True
 
     if config_module:
         app.config.from_object(config_module)
