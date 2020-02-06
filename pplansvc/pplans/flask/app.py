@@ -9,6 +9,7 @@ from morus.flask.app import (
 
 from pplans.flask.blueprints import warranties_api
 from pplans.models import db
+from pplans.warranty import create_demo_data
 
 
 log = logging.getLogger(__name__)
@@ -28,10 +29,13 @@ def configured_app(import_name, dsn, debug=False, config_module=None,
                     profile=profile, proxy_fix=proxy_fix)
     app.config["SQLALCHEMY_DATABASE_URI"] = dsn
     app.register_blueprint(warranties_api)
-    with app.app_context():
-        db.init_app(app)
-        db.drop_all()
-        db.create_all()
+    # allow remainder of code to assume single app context is pushed
+    app.app_context().push()
+    db.init_app(app)
     log.debug("configured_app: {}".format(app))
+    # for demo purposes..
+    db.drop_all()
+    db.create_all()
+    create_demo_data()
     return app
 

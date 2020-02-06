@@ -1,4 +1,11 @@
+"""
+Flask-SQLAlchemy model definitions.
+
+Aside from the app context initialization, this is the only module in the
+project that should be aware of SQLAlchemy at all
+"""
 import enum
+import uuid
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID
@@ -15,15 +22,28 @@ class ItemType(enum.Enum):
     jewelry = "jewelry"
 
 
+item_warranty = db.Table('items_warranties',
+    db.Column('item_id', db.Integer, db.ForeignKey('items.item_id'), primary_key=True),
+    db.Column('warranty_id', db.Integer, db.ForeignKey('warranties.warranty_id'), primary_key=True)
+)
+
+store_warranty = db.Table('stores_warranties',
+    db.Column('store_id', db.Integer, db.ForeignKey('stores.store_id'), primary_key=True),
+    db.Column('warranty_id', db.Integer, db.ForeignKey('warranties.warranty_id'), primary_key=True)
+)
+
 class Item(BaseModel):
     __tablename__ = 'items'
     item_id = db.Column(db.Integer, primary_key=True)
-    item_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False)
+    item_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     item_type = db.Column(db.Enum(ItemType))
     item_cost = db.Column(db.Numeric(precision=12, scale=2), index=True)
     item_sku = db.Column(db.String(32), nullable=False, index=True)
     item_title = db.Column(db.String(64))
-    warranties = db.relationship("Warranty", backref="item", lazy=True)
+
+    #warranties = db.relationship("Warranty", backref="item", lazy=True)
+    warranties = db.relationship('Warranty', secondary=item_warranty, lazy='subquery',
+                                 backref=db.backref('items', lazy=True))
 
     def __repr__(self):
         return '<Item {} "{}">'.format(self.item_uuid, self.item_title)
@@ -32,9 +52,12 @@ class Item(BaseModel):
 class Store(BaseModel):
     __tablename__ = 'stores'
     store_id = db.Column(db.Integer, primary_key=True)
-    store_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False)
+    store_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     store_name = db.Column(db.String(32), nullable=False, index=True)
-    warranties = db.relationship("Warranty", backref="item", lazy=True)
+
+    #warranties = db.relationship("Warranty", backref="item", lazy=True)
+    warranties = db.relationship('Warranty', secondary=store_warranty, lazy='subquery',
+                                 backref=db.backref('stores', lazy=True))
 
     def __repr__(self):
         return '<Store {} "{}">'.format(self.store_uuid, self.store_name)
@@ -88,12 +111,15 @@ class Warranty(BaseModel):
     __tablename__ = 'warranties'
 
     warranty_id = db.Column(db.Integer, primary_key=True)
-    warranty_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False)
     store_id = db.Column(db.Integer, db.ForeignKey("stores.store_id"), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey("items.item_id"), nullable=False)
     warranty_price = db.Column(db.Numeric(precision=6, scale=2), index=True, nullable=False)
     warranty_duration_months = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
-        return '<Warranty {}>'.format(self.warranty_uuid)
+        return '<Warranty {}:{}-{}-{}-{}>'.format(self.warranty_id,
+                                                  self.store_id,
+                                                  self.item_id,
+                                                  self.warranty_price,
+                                                  self.warranty_duration_months)
 
