@@ -42,7 +42,7 @@ def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
         Store.store_uuid,
         Store.store_name,
         Warranty.warranty_price,
-        Warranty.warranty_duration_month
+        Warranty.warranty_duration_months
     ).filter_by(**crit).all()
     log.debug("get_warranties: {}".format(res))
     ret = []
@@ -53,7 +53,7 @@ def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
             "item_uuid": rec.item_uuid,
             "store_uuid": rec.store_uuid,
             "warranty_price": rec.warranty_price,
-            "warranty_duration_month": rec.warranty_duration_month,
+            "warranty_duration_months": rec.warranty_duration_months,
         })
     return ret
 
