@@ -22,8 +22,10 @@ def create_store_name():
     W2 = ["Markt", "Store", "Stuff", "Warehouse"]
     return " ".join([random.choice(W1), random.choice(W2)])
 
+
 def gen_warranty(item_type, item_cost, store_uuid, item_sku):
     pass
+
 
 def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
     log.debug("get_warranties: {}".format(locals()))
@@ -78,6 +80,8 @@ def create_demo_data():
         ("furniture", "0.00", "100.00", "50.00", "0"),
         ("furniture", "100.01", "500.00", "15.00", "12"),
         ("furniture", "100.01", "500.00", "20.00", "24"),
+        ("electronics", "0.00", "999.99", "100.00", "36"),
+        ("electronics", "1000.00", "1999.99", "150.00", "36"),
     ]:
         c = Constraint(item_type=row[0], min_cost=row[1], max_cost=row[2],
                        warranty_price=row[3], warranty_duration_months=row[4])
@@ -90,6 +94,7 @@ def create_demo_data():
     store_id = created["stores"][0].store_id
     item_one_id = created["items"][0].item_id
     item_two_id = created["items"][1].item_id
+    item_three_id = created["items"][2].item_id
 
     for row in [
         # item_cost=80.00 elig. for (5.00, 12), (10.00, 36), (50.00, 0)
@@ -99,6 +104,8 @@ def create_demo_data():
         # item_cost=120.00 elig. for (15.00, 12), (20.00, 24)
         (store_id, item_two_id, 15.00, 12),
         (store_id, item_two_id, 20.00, 24),
+        # item_cost=1200.00 elig. for (150.00, 36)
+        (store_id, item_three_id, 150.00, 36),
     ]:
         w = Warranty(store_id=row[0], item_id=row[1], warranty_price=row[2],
                      warranty_duration_months=row[3])
