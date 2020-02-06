@@ -22,16 +22,6 @@ class ItemType(enum.Enum):
     jewelry = "jewelry"
 
 
-item_warranty = db.Table('items_warranties',
-    db.Column('item_id', db.Integer, db.ForeignKey('items.item_id'), primary_key=True),
-    db.Column('warranty_id', db.Integer, db.ForeignKey('warranties.warranty_id'), primary_key=True)
-)
-
-store_warranty = db.Table('stores_warranties',
-    db.Column('store_id', db.Integer, db.ForeignKey('stores.store_id'), primary_key=True),
-    db.Column('warranty_id', db.Integer, db.ForeignKey('warranties.warranty_id'), primary_key=True)
-)
-
 class Item(BaseModel):
     __tablename__ = 'items'
     item_id = db.Column(db.Integer, primary_key=True)
@@ -40,10 +30,6 @@ class Item(BaseModel):
     item_cost = db.Column(db.Numeric(precision=12, scale=2), index=True)
     item_sku = db.Column(db.String(32), nullable=False, index=True)
     item_title = db.Column(db.String(64))
-
-    #warranties = db.relationship("Warranty", backref="item", lazy=True)
-    warranties = db.relationship('Warranty', secondary=item_warranty, lazy='subquery',
-                                 backref=db.backref('items', lazy=True))
 
     def __repr__(self):
         return '<Item {} "{}">'.format(self.item_uuid, self.item_title)
@@ -54,10 +40,6 @@ class Store(BaseModel):
     store_id = db.Column(db.Integer, primary_key=True)
     store_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     store_name = db.Column(db.String(32), nullable=False, index=True)
-
-    #warranties = db.relationship("Warranty", backref="item", lazy=True)
-    warranties = db.relationship('Warranty', secondary=store_warranty, lazy='subquery',
-                                 backref=db.backref('stores', lazy=True))
 
     def __repr__(self):
         return '<Store {} "{}">'.format(self.store_uuid, self.store_name)
@@ -115,6 +97,9 @@ class Warranty(BaseModel):
     item_id = db.Column(db.Integer, db.ForeignKey("items.item_id"), nullable=False)
     warranty_price = db.Column(db.Numeric(precision=6, scale=2), index=True, nullable=False)
     warranty_duration_months = db.Column(db.Integer, nullable=False)
+
+    item = db.relationship(Item, backref=db.backref("warranties", cascade="all, delete-orphan"))
+    store = db.relationship(Store, backref=db.backref("warranties", cascade="all, delete-orphan"))
 
     def __repr__(self):
         return '<Warranty {}:{}-{}-{}-{}>'.format(self.warranty_id,

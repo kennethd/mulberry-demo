@@ -27,32 +27,30 @@ def gen_warranty(item_type, item_cost, store_uuid, item_sku):
 
 def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
     log.debug("get_warranties: {}".format(locals()))
-    crit = {
-        "item_type": item_type,
-        "item_uuid": item_uuid,
-        "item_sku": item_sku,
-        "store_uuid": store_uuid,
-    }
-    res = Warranty.query(
-        Item.item_uuid,
-        Item.item_type,
-        Item.item_cost,
-        Item.item_sku,
-        Item.item_title,
-        Store.store_uuid,
-        Store.store_name,
-        Warranty.warranty_price,
-        Warranty.warranty_duration_months
-    ).filter_by(**crit).all()
-    log.debug("get_warranties: {}".format(res))
+    if not any([item_type, item_sku, item_uuid, store_uuid]):
+        raise RuntimeError("Filter criteria is required")
+
+    wheres = []
+    if item_type:
+        wheres.append(Item.item_type == item_type)
+    if item_uuid:
+        wheres.append(Item.item_uuid == item_uuid)
+    if item_sku:
+        wheres.append(Item.item_sku == item_sku)
+    if store_uuid:
+        wheres.append(Store.store_uuid == store_uuid)
+
+    rs = Warranty.query.join(Warranty.item).join(Warranty.store).filter(*wheres).all()
+    log.debug("get_warranties: {}".format(rs))
+
     ret = []
-    for rec in res:
+    for rec in rs:
         ret.append({
-            "item_sku": rec.item_sku,
-            "item_type": rec.item_type,
-            "item_uuid": rec.item_uuid,
-            "store_uuid": rec.store_uuid,
-            "warranty_price": rec.warranty_price,
+            "item_sku": rec.item.item_sku,
+            "item_type": rec.item.item_type.value,
+            "item_uuid": rec.item.item_uuid,
+            "store_uuid": rec.store.store_uuid,
+            "warranty_price": str(rec.warranty_price),
             "warranty_duration_months": rec.warranty_duration_months,
         })
     return ret
@@ -68,6 +66,7 @@ def create_demo_data():
     for row in [
         ("furniture", "FURN-123", "80.00", "Amy's Sectional Sofa"),
         ("furniture", "FURN-1234", "120.00", "Ken's Vintage Sofa"),
+        ("electronics", "ELEC-999", "1200.00", "ARP Modular Synth"),
     ]:
         i = Item(item_type=row[0], item_sku=row[1], item_cost=row[2], item_title=row[3])
         db.session.add(i)
