@@ -22,7 +22,6 @@ and Flask app factory function.
 There are more detailed setup instructions in `pplansvc.README.md`, but if you
 are on a Ubuntu-like system with Python3.7 and Postgres (and libpq-dev)
 available, this quickstart should be all you need:
-
 ```sh
 kenneth@x1:~/git/mulberry-demo (master)$ python3.7 -m venv ./venv-py3.7
 kenneth@x1:~/git/mulberry-demo (master)$ . ./venv-py3.7/bin/activate
@@ -31,6 +30,24 @@ kenneth@x1:~/git/mulberry-demo (master)$ . ./venv-py3.7/bin/activate
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ cd pplansvc/
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py develop
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py test
+```
+
+To make sure your database is set up correctly, try the following:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py envtest
+```
+
+The first time you run the `envtest` command you will likely have to create
+the `testuser` and `testdb`:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py createuser --dbuser testuser --dbpass testpass
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py createdb --dbname testdb --owner testuser
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py envtest
+```
+
+Once `envtest` passes, you can run the full test suite, with added integration
+tests, like so:
+```sh
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py integration
 ```
 
@@ -40,6 +57,25 @@ the functional tests for `pplansvc`.  `setup.py integrate` also runs `pplansvc`
 integration tests.  Typically integration tests are much slower than unit &
 functional tests, involve spinning up a docker instance, creating databases,
 possibly launching multiple interactive services, and so on.
+
+To launch the app locally:
+```sh
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./app.py --port 9999 --debug --testing --dsn 'postgresql://testuser:testpass@localhost:5432/testdb'
+```
+
+The `--testing` flag will cause all tables to be dropped & recreated, and
+populated with testing data.
+
+To POST a request to the running service, with the expected side effects of
+creating the item & store:
+```sh
+curl -d "item_type=furniture&item_cost=150.00&item_sku=986kjeo8fy9qhu&item_title=Amy's Sectional Sofa&store_uuid=864f07f3-0363-48c2-83bc-454d2c216ef0" -X POST http://localhost:9999/warranties/
+```
+
+And to view the warranties available for the newly created item:
+```sh
+curl http://localhost:9999/warranties/?item_sku=986kjeo8fy9qhu
+```
 
 Next steps would be:
 

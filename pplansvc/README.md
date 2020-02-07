@@ -105,24 +105,6 @@ The next problem will be `db testdb not found`
 (venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py createdb --dbname testdb --owner testuser
 ```
 
-### alembic init
-
-If not already done, run the `alembic init` command like so:
-```sh
-(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ alembic init alembic 
-  Creating directory /home/kenneth/git/mulberry-demo/pplansvc/alembic ...  done
-  Creating directory /home/kenneth/git/mulberry-demo/pplansvc/alembic/versions ...  done
-  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/script.py.mako ...  done
-  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/env.py ...  done
-  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic.ini ...  done
-  Generating /home/kenneth/git/mulberry-demo/pplansvc/alembic/README ...  done
-  Please edit configuration/connection/logging settings in '/home/kenneth/git/mulberry-demo/pplansvc/alembic.ini' before proceeding.
-```
-
-As the output suggests, edit `alembic.ini` as follows:
-```ini
-sqlalchemy.url = postgres://testuser:testpass@localhost/testdb
-```
 
 ## Endpoints
 
