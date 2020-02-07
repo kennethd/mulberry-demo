@@ -4,8 +4,8 @@ import os
 import tempfile
 
 from flask import Flask, jsonify
-from werkzeug.contrib.fixers import ProxyFix
-from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 
 log = logging.getLogger(__name__)

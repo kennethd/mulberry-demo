@@ -14,6 +14,33 @@ Setup instructions are found in the `pplansvc` README
 A minimal set of tests is included, illustrating the mechanisms and code
 structure for creating tests at the unit, functional, and integration levels.
 
+Much of the `moruslib` code comes directly from my personal genealogy project,
+most interesting for review will be the testing modules from the ``pplansvc`
+package, and the separation of models, library, functions, Flask Blueprint,
+and Flask app factory function.
+
+There are more detailed setup instructions in `pplansvc.README.md`, but if you
+are on a Ubuntu-like system with Python3.7 and Postgres (and libpq-dev)
+available, this quickstart should be all you need:
+
+```sh
+kenneth@x1:~/git/mulberry-demo (master)$ python3.7 -m venv ./venv-py3.7
+kenneth@x1:~/git/mulberry-demo (master)$ . ./venv-py3.7/bin/activate
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -U pip setuptools wheel
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ pip install -e moruslib/
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo (master)$ cd pplansvc/
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py develop
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py test
+(venv-py3.7) kenneth@x1:~/git/mulberry-demo/pplansvc (master)$ ./setup.py integration
+```
+
+Both `setup.py test` and `setup.py integration` are set up as custom `setuptools` 
+subcommands which run the full unit test suites for both packages, as well as
+the functional tests for `pplansvc`.  `setup.py integrate` also runs `pplansvc`
+integration tests.  Typically integration tests are much slower than unit &
+functional tests, involve spinning up a docker instance, creating databases,
+possibly launching multiple interactive services, and so on.
+
 Next steps would be:
 
   * implement object serialization package for validation
