@@ -10,10 +10,19 @@ import collections
 import logging
 import random
 
+from morus.logging import getLogger
 from pplans.models import db, Item, Store, Warranty, Constraint
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
+
+WARRANTY_ERRORS = {
+    "no crit": "No suitable criteria",
+    "filter req": "Filter criteria is required",
+}
+
+class WarrantyRuntimeError(RuntimeError):
+    pass
 
 
 def create_store_name():
@@ -23,14 +32,56 @@ def create_store_name():
     return " ".join([random.choice(W1), random.choice(W2)])
 
 
-def gen_warranty(item_type, item_cost, store_uuid, item_sku):
-    pass
+def warranty(item_cost, item_sku, item_title, item_type, store_uuid):
+    log.debug("warranty args: {}".format(locals()))
+
+    # check for available warranties for (item_type, item_cost) combo
+    constraints = get_constraints(item_type, item_cost)
+    log.debug("found constraints: {}".format(constraints))
+    if not constraints:
+        raise WarrantyRuntimeError(WARRANTY_ERRORS["no crit"])
+
+    # Item has a UNIQUE constraint on (item_type, item_sku)
+    wheres = [
+        Item.item_type == item_type,
+        Item.item_sku == item_sku,
+    ]
+    item = Item.query.filter(*wheres).first()
+    if not item:
+        item = Item(item_sku=item_sku, item_type=item_type)
+    item.item_cost = item_cost
+    item.item_title = item_title
+    db.session.add(item)
+
+    store = Store.query.filter(Store.store_uuid==store_uuid).first()
+    if not store:
+        store = Store(store_uuid=store_uuid, store_name=create_store_name())
+    db.session.add(store)
+
+    # commit any changes to db, generate pk ids
+    db.session.commit()
+
+    # for each warranty available for item, ensure row exists
+    warranties = []
+    for avail_warranty in constraints:
+        attrs = {
+            "item_id": item.item_id,
+            "store_id": store.store_id,
+            "warranty_price": avail_warranty["warranty_price"],
+            "warranty_duration_months": avail_warranty["warranty_duration_months"],
+        }
+        warranties.append(attrs)
+        warranty = Warranty(**attrs)
+        db.session.add(warranty)
+
+    db.session.commit()
+    return warranties
 
 
 def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
     log.debug("get_warranties: {}".format(locals()))
     if not any([item_type, item_sku, item_uuid, store_uuid]):
-        raise RuntimeError("Filter criteria is required")
+        raise WarrantyRuntimeError(WARRANTY_ERRORS["filter req"])
 
     wheres = []
     if item_type:
@@ -58,6 +109,32 @@ def get_warranties(item_type="", item_sku="", item_uuid="", store_uuid=""):
     return ret
 
 
+def get_constraints(item_type="", item_cost=""):
+    log.debug("get_constraints: {}".format(locals()))
+
+    wheres = []
+    if item_type:
+        wheres.append(Constraint.item_type == item_type)
+    if item_cost:
+        wheres.extend([
+            Constraint.min_cost < item_cost,
+            Constraint.max_cost > item_cost,
+        ])
+    rs = Constraint.query.filter(*wheres).all()
+
+    ret = []
+    for rec in rs:
+        ret.append({
+            "constraint_id": rec.constraint_id,
+            "item_type": rec.item_type.value,
+            "min_cost": str(rec.min_cost),
+            "max_cost": str(rec.max_cost),
+            "warranty_price": str(rec.warranty_price),
+            "warranty_duration_months": rec.warranty_duration_months,
+        })
+    return ret
+
+
 def create_demo_data():
     created = collections.defaultdict(list)
 
@@ -66,7 +143,7 @@ def create_demo_data():
     created["stores"].append(s)
 
     for row in [
-        ("furniture", "FURN-123", "80.00", "Amy's Sectional Sofa"),
+        ("furniture", "FURN-123", "80.00", "Retro Kitchen Table"),
         ("furniture", "FURN-1234", "120.00", "Ken's Vintage Sofa"),
         ("electronics", "ELEC-999", "1200.00", "ARP Modular Synth"),
     ]:
@@ -91,10 +168,10 @@ def create_demo_data():
     # commit to generate ids
     db.session.commit()
 
-    store_id = created["stores"][0].store_id
     item_one_id = created["items"][0].item_id
     item_two_id = created["items"][1].item_id
     item_three_id = created["items"][2].item_id
+    store_id = created["stores"][0].store_id
 
     for row in [
         # item_cost=80.00 elig. for (5.00, 12), (10.00, 36), (50.00, 0)

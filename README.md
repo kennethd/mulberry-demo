@@ -1,6 +1,26 @@
 
 # Mulberry Exercise
 
+Project has been completed with an intent on focusing on the structure and
+packaging of a flask app, to be deployed as a part of a service ecosystem, in
+a testable manner.
+
+This repo contains two packages, "moruslib", which contains common library
+functions, to be shared across theoretical services, and "pplansvc", an
+implementation of the assignment service.
+
+Setup instructions are found in the `pplansvc` README
+
+A minimal set of tests is included, illustrating the mechanisms and code
+structure for creating tests at the unit, functional, and integration levels.
+
+Next steps would be:
+
+  * implement object serialization package for validation
+  * add the upload to aws piece
+
+# Project Spec
+
 Imagine a system where thousands of retail stores are concurrently sending
 product data to a service that will generate protection plans based on item
 cost and type. Each warranty is tied to a store.
@@ -8,9 +28,11 @@ cost and type. Each warranty is tied to a store.
 POST requests sent to the service will have a payload in the following format: 
 ```json
 {
-    "store_uuid": "b21ad0676f26439", "item_type": "furniture",
-    "item_sku": "986kjeo8fy9qhu" item_cost": 150.0,
+    "item_cost": 150.0,
+    "item_sku": "986kjeo8fy9qhu"
     "item_title": "Amy's Sectional Sofa"
+    "item_type": "furniture",
+    "store_uuid": "b21ad0676f26439",
 }
 ```
 

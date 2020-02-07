@@ -24,6 +24,10 @@ class ItemType(enum.Enum):
 
 class Item(BaseModel):
     __tablename__ = 'items'
+    __table_args__ = (
+        db.UniqueConstraint('item_type', 'item_sku'),
+    )
+
     item_id = db.Column(db.Integer, primary_key=True)
     item_uuid = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
     item_type = db.Column(db.Enum(ItemType))
@@ -32,7 +36,8 @@ class Item(BaseModel):
     item_title = db.Column(db.String(64))
 
     def __repr__(self):
-        return '<Item {} "{}">'.format(self.item_uuid, self.item_title)
+        return '<Item {} {}:{} "{}">'.format(self.item_uuid, self.item_type,
+                                             self.item_sku, self.item_title)
 
 
 class Store(BaseModel):

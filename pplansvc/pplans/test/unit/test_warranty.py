@@ -1,7 +1,10 @@
-
+"""
+Unit tests are used to test discrete functionality -- single functions or
+methods of library code
+"""
 from morus.testing.base import MorusTestCase
 
-from pplans.warranty import create_store_name, gen_warranty
+from pplans.warranty import create_store_name
 
 
 class WarrantyTestCase(MorusTestCase):
@@ -10,11 +13,4 @@ class WarrantyTestCase(MorusTestCase):
         name = create_store_name()
         self.assertTrue(name)
         self.assertTrue(" " in name)
-
-
-    def test_gen_warranty(self):
-        pass
-
-    def test_get_warranties(self):
-        pass
 

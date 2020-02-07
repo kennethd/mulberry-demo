@@ -2,10 +2,16 @@
 import contextlib
 import errno
 import io
+import logging
+import multiprocessing
 import os
 import socket
 import sys
 import tempfile
+import threading
+import time
+
+log = logging.getLogger(__name__)
 
 
 def mkportslockdir():
@@ -117,8 +123,54 @@ def unused_port(lockdir=None):
         except OSError as ex:
             if ex.errno == errno.EEXIST:
                 # if lockfile exists, try again
-                print("Lock exists {} {}".format(ex.errno, ex.filename))
+                log.warn("Lock exists {} {}".format(ex.errno, ex.filename))
                 if ex.filename == lockfile_path:
                     s.close()
                     continue
+
+
+def _bginst(app, port, https=False, ssl_crt=None, ssl_key=None):
+    """start a daemonized instance of app listening on port in background
+    (shared target function for thread & multiprocess implementations)"""
+    if https:
+        app.run(port=port, ssl_context=(ssl_crt, ssl_key), use_reloader=False)
+    else:
+        app.run(port=port, use_reloader=False)
+
+
+def background_instance_multiprocess(app, port, https=False, ssl_crt=None, ssl_key=None):
+    """call app.run() listening on port from daemonized process
+
+    ssl_crt & ssl_key are only required if https=True"""
+    p = multiprocessing.Process(target=_bginst,
+                                args=(app, port, https, ssl_crt, ssl_key))
+    p.daemon = True
+    p.start()
+    time.sleep(0.1)
+
+
+def background_instance_threaded(app, port, https=False, ssl_crt=None, ssl_key=None):
+    """call app.run() listening on port in background thread
+
+    ssl_crt & ssl_key are only required if https=True"""
+    t = threading.Thread(target=_bginst, daemon=True,
+                         args=(app, port, https, ssl_crt, ssl_key))
+    t.start()
+    time.sleep(0.1)
+
+
+@contextlib.contextmanager
+def background_instance(app, port, https=False, ssl_crt=None, ssl_key=None):
+    """switch default implementation between multiprocess/threading versions"""
+    scheme = ('http', 'https')[int(https)]
+    url = '{}://localhost:{}/'.format(scheme, port)
+    app_id = app.config['SESSION_COOKIE_NAME']
+    msg = 'bg {} listening at {}'.format(app_id, url)
+    log.debug(msg)
+    try:
+        background_instance_threaded(app, port, https=https,
+                                     ssl_crt=ssl_crt, ssl_key=ssl_key)
+        yield url
+    finally:
+        pass
 

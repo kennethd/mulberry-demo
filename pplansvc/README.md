@@ -124,9 +124,6 @@ As the output suggests, edit `alembic.ini` as follows:
 sqlalchemy.url = postgres://testuser:testpass@localhost/testdb
 ```
 
-### ./setup.py createschema
-
-
 ## Endpoints
 
 ### /warranties

@@ -30,10 +30,6 @@ class TestFlaskTestCase(MorusTestCase):
                 expect = "required: --port"
                 self.assertTrue(expect in _stderr.getvalue().strip())
 
-            with unused_port() as port:
-                ns = ConfiguredAppArgParser.parse_args(["--port", str(port)])
-                self.assertEqual(ns.port, port)
-
 
     def test_parse_args(self):
         pass
